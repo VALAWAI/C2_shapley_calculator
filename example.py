@@ -101,7 +101,7 @@ if __name__ == '__main__':
         },
         'norm': 'payback'
     }
-    
+
     def request_and_print():
         response = requests.get(f"{url}/shapley", json=data)
         print(response.status_code)
@@ -109,6 +109,4 @@ if __name__ == '__main__':
 
     p2 = Process(target=request_and_print)
     p2.start()
-    p2.join()
-    p1.terminate()
     
