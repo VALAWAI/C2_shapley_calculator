@@ -1,5 +1,6 @@
 from mesa import Agent, Model
 from mesa.time import BaseScheduler
+from multiprocessing import Process
 from random import seed, uniform
 from shapley_calculator import create_app
 
@@ -83,5 +84,31 @@ if __name__ == '__main__':
         {},
         ratio_wealth_value
     )
-    app.run(debug=True)
+    p1 = Process(target=app.run, kwargs={'debug': True})
+    p1.start()
+
+    import requests
+    url = "http://127.0.0.1:5000"
+
+    data = {
+        'baseline_norms': {
+            'pay': {'rates': [0.]*5},
+            'payback': {'rates': [0.]*5}
+        },
+        'normative_system': {
+            'pay': {'rates': [0.1, 0.2, 0.3, 0.4, 0.5]},
+            'payback': {'rates': [0.2, 0.2, 0.2, 0.2, 0.2]}
+        },
+        'norm': 'payback'
+    }
+    
+    def request_and_print():
+        response = requests.get(f"{url}/shapley", json=data)
+        print(response.status_code)
+        print(response.json())
+
+    p2 = Process(target=request_and_print)
+    p2.start()
+    p2.join()
+    p1.terminate()
     

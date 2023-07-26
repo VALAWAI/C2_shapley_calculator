@@ -1,11 +1,34 @@
-asyncapi: '2.6.0'
+asyncapi: 2.6.0
 info:
-    title: VALAWAI C2 Norm optimizer
-    version: '0.1.0'
-    description: |
-        This C2 component is ...
-    license:
-        name: MIT
-        url: https://opensource.org/license/mit/
-
-defaultContentType: application/json
+  title: VALAWAI C2 Shapley Calculator
+  version: '0.1.0'
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit/
+channels:
+  shapley:
+    publish:
+      message:
+        payload:
+          type: object
+          additionalProperties: false
+          properties:
+            baseline_norms:
+              type: object
+              examples:
+                - {'pay': {'rates': [0., 0., 0., 0.]}, 'payback': {'rates': [0., 0., 0., 0.]}}
+            normative_system:
+              type: object
+              examples:
+                - {'pay': {'rates': [0.1, 0.2, 0.3, 0.4, 0.5]}, 'payback': {'rates': [0.2, 0.2, 0.2, 0.2, 0.2]}}
+            norm:
+              type: string
+              examples:
+                - 'pay'
+            path_length:
+              type: integer
+              default: 10
+            path_sample:
+              type: integer
+              default: 100
+              

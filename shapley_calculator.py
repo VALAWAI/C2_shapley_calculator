@@ -2,7 +2,6 @@ from copy import deepcopy
 from flask import Flask, Request, request
 from itertools import combinations
 from math import factorial
-from mesa import Model
 from pathos.multiprocessing import cpu_count, ProcessPool
 from traceback import format_exc
 
@@ -10,26 +9,26 @@ from typing import Any, Callable, Type
 
 
 def evaluate_path(
-    model_cls: Type[Model],
+    model_cls: Type,
     model_args: list[Any],
     model_kwargs: dict[str, Any],
     norms: dict[str, dict[str, Any]],
-    value: Callable[[Model], float],
+    value: Callable[[object], float],
     path_length: int
 ) -> float:
     """Evaluate the outcome of a path in terms of a value.
 
     Parameters
     ----------
-    model_cls : Type[Model]
-        The class of the ABM, a subclass of ``mesa.Model``.
+    model_cls : Type[...]
+        Class of the model.
     model_args : list[Any]
         Model initilization arguments.
     model_kwargs : dict[str, Any]
         Model initialization keyword arguments.
     norms : dict[str, dict[str, Any]]
         The set of norms governing the evolution of the model.
-    value : Callable[[Model], float]
+    value : Callable[[object], float]
         The value semantics function that evaluates the final state of a path.
     path_length : int
         The number of steps in the path to evaluate.
@@ -45,11 +44,11 @@ def evaluate_path(
 
 
 def alignment(
-    model_cls: Type[Model],
+    model_cls: Type,
     model_args: list[Any],
     model_kwargs: dict[str, Any],
     norms: dict[str, dict[str, Any]],
-    value: Callable[[Model], float],
+    value: Callable[[object], float],
     path_length: int,
     path_sample: int,
     pool: ProcessPool
@@ -62,14 +61,14 @@ def alignment(
     Parameters
     ----------
     model_cls : Type[Model]
-        The class of the ABM, a subclass of ``mesa.Model``.
+        Class of the model.
     model_args : list[Any]
         Model initilization arguments.
     model_kwargs : dict[str, Any]
         Model initialization keyword arguments.
     norms : dict[str, dict[str, Any]]
         The set of norms governing the evolution of the model.
-    value : Callable[[Model], float]
+    value : Callable[[object], float]
         The value semantics function that evaluates the final state of a path.
     path_length : int
         The number of steps in the path to evaluate.
@@ -100,13 +99,13 @@ def alignment(
     
 
 def shapley_value(
-    model_cls: Type[Model],
+    model_cls: Type,
     model_args: list[Any],
     model_kwargs: dict[str, Any],
     baseline_norms: dict[str, dict[str, Any]],
     normative_system: dict[str, dict[str, Any]],
     norm: str,
-    value: Callable[[Model], float],
+    value: Callable[[object], float],
     path_length: int = 10,
     path_sample: int = 100
 ) -> float:
@@ -119,8 +118,8 @@ def shapley_value(
 
     Parameters
     ----------
-    model_cls : Type[Model]
-        The class of the ABM, a subclass of ``Model``.
+    model_cls : Type[...]
+        Class of the model.
     model_args : list[Any]
         Model initilization arguments.
     model_kwargs : dict[str, Any]
@@ -132,7 +131,7 @@ def shapley_value(
         to a dictionary of its normative parameters.
     norm : str
         The ID of the norm whose Shapley value is computed.
-    value : Callable[[Model], float]
+    value : Callable[[object], float]
         The value with respect to which the Shapley value is computed. It is
         passed as a function taking as input a model instance and returning
         the evaluation of the value semantics function given the state of
@@ -212,12 +211,41 @@ def shapley_value(
 
 
 def create_app(
-    model_cls: Type[Model],
+    model_cls: Type,
     model_args: list[Any],
     model_kwargs: dict[str, Any],
-    value: Callable[[Model], float]
+    value: Callable[[object], float]
 ) -> Flask:
-    
+    """Create a Flask app that computes the Shapley value.
+
+    This C2 component of the VALAWAI architecture computes the Shapley value of
+    an individual norm (within a normative system) with respect to a value [1]_.
+
+    Parameters
+    ----------
+    model_cls : Type[...]
+        Class of the model.
+    model_args : list[Any]
+        Model initilization arguments.
+    model_kwargs : dict[str, Any]
+        Model initilization keyword arguments.
+    value : Callable[[object], float]
+        The value with respect to which the Shapley value is computed. It is
+        passed as a function taking as input a model instance and returning
+        the evaluation of the value semantics function given the state of
+        the model.
+
+    Returns
+    -------
+    Flask
+        A Flask application that can process GET /shapley requests.
+
+    References
+    ----------
+    .. [1] Montes, N., & Sierra, C. (2022). Synthesis and properties of optimally
+        value-aligned normative systems. Journal of Artificial Intelligence
+        Research, 74, 1739–1774. https://doi.org/10.1613/jair.1. 13487
+    """
     __EXPECTED_TYPES = {
         'baseline_norms': dict, 'normative_system': dict, 'norm': str,
         'path_length': int, 'path_sample': int
@@ -236,7 +264,7 @@ def create_app(
 
     @app.get('/shapley')
     def get_shapley():
-        input_data = __check_request(request, dict)
+        input_data = __check_request(request)
 
         __NEED_KEYS = ['baseline_norms', 'normative_system', 'norm']
         __OPT_KEYS = ['path_length', 'path_sample']
