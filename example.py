@@ -63,8 +63,8 @@ def ratio_wealth_value(mdl: TaxModel) -> float:
     return a/b
 
 
-def max_wealth(mdl: TaxModel) -> float:
-    """Semantics function for value equality based on the maximum wealth.
+def gini_index_value(mdl: TaxModel) -> float:
+    """Semantics function for value equality based on the Gini Index.
 
     Parameters
     ----------
@@ -74,7 +74,11 @@ def max_wealth(mdl: TaxModel) -> float:
     -------
     float
     """
-    return mdl.sorted_agents[199].wealth
+    sorted_wealth = [ag.wealth for ag in mdl.sorted_agents]
+    N = mdl.num_agents
+    B = sum(xi * (N - i) for i, xi in enumerate(sorted_wealth)) 
+    GI =  1 + (1 / N) - 2 * B / (N * sum(sorted_wealth))
+    return 1 - 2*GI
 
         
 if __name__ == '__main__':
@@ -82,7 +86,7 @@ if __name__ == '__main__':
         TaxModel,
         [],
         {},
-        ratio_wealth_value
+        gini_index_value
     )
     p1 = Process(target=app.run, kwargs={'debug': True})
     p1.start()
@@ -99,7 +103,7 @@ if __name__ == '__main__':
             'pay': {'rates': [0.1, 0.2, 0.3, 0.4, 0.5]},
             'payback': {'rates': [0.2, 0.2, 0.2, 0.2, 0.2]}
         },
-        'norm': 'payback'
+        'norm': 'pay'
     }
 
     def request_and_print():
