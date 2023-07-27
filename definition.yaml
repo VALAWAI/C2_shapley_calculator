@@ -4,7 +4,8 @@ info:
   version: '0.1.0'
   license:
     name: MIT
-    url: https://opensource.org/license/mit/
+    url: https://github.com/VALAWAI/C2_shapley_calculator/blob/main/LICENSE
+defaultContentType: application/json
 channels:
   shapley:
     publish:
