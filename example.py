@@ -1,8 +1,13 @@
+import argparse
 from mesa import Agent, Model
 from mesa.time import BaseScheduler
 from multiprocessing import Process
 from random import seed, uniform
-from shapley_calculator import create_app
+
+from app import create_app
+
+parser = argparse.ArgumentParser()
+parser.add_argument('port', type=int)
 
 seed(100)
 
@@ -82,35 +87,26 @@ def gini_index_value(mdl: TaxModel) -> float:
 
         
 if __name__ == '__main__':
+    
+    baseline_norms = {
+        'pay': {'rates': [0.]*5},
+        'payback': {'rates': [0.]*5}
+    }
+
+    normative_system = {
+        'pay': {'rates': [0.1, 0.2, 0.3, 0.4, 0.5]},
+        'payback': {'rates': [0.2, 0.2, 0.2, 0.2, 0.2]}
+    }
+
     app = create_app(
         TaxModel,
         [],
         {},
+        baseline_norms,
+        normative_system,
         gini_index_value
     )
-    p1 = Process(target=app.run, kwargs={'debug': True})
-    p1.start()
 
-    import requests
-    url = "http://127.0.0.1:5000"
-
-    data = {
-        'baseline_norms': {
-            'pay': {'rates': [0.]*5},
-            'payback': {'rates': [0.]*5}
-        },
-        'normative_system': {
-            'pay': {'rates': [0.1, 0.2, 0.3, 0.4, 0.5]},
-            'payback': {'rates': [0.2, 0.2, 0.2, 0.2, 0.2]}
-        },
-        'norm': 'pay'
-    }
-
-    def request_and_print():
-        response = requests.get(f"{url}/shapley", json=data)
-        print(response.status_code)
-        print(response.json())
-
-    p2 = Process(target=request_and_print)
-    p2.start()
+    args = parser.parse_args()
+    app.run(debug=True, host='0.0.0.0', port=args.port)
     

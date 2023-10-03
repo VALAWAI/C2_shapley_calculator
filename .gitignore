@@ -28,5 +28,4 @@ nb-configuration.xml
 *.orig
 *.rej
 
-__pycache__/
-.vscode/
+__pycache__

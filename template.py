@@ -1,6 +1,10 @@
-from shapley_calculator import create_app
-
+import argparse
 from typing import Any
+
+from app import create_app
+
+parser = argparse.ArgumentParser()
+parser.add_argument('port', type=int)
 
 
 class YourModel:
@@ -33,7 +37,7 @@ class YourModel:
         raise NotImplementedError
     
 
-def your_value_semantics_funcion(mdl: YourModel) -> float:
+def your_value_semantics_function(mdl: YourModel) -> float:
     """Value semantics function.
 
     Parameters
@@ -53,10 +57,26 @@ def your_value_semantics_funcion(mdl: YourModel) -> float:
 
 
 if __name__ == '__main__':
+
+    baseline_norms = {
+        ...
+    }
+
+    norms = {
+        ...
+    }
+
     app = create_app(
         YourModel,                      # your model class
         [...],                          # your model initialization arguments
         {...},                          # your model initialization keyword arguments
-        your_value_semantics_funcion,   # your value semantics function
+        baseline_norms,                 # your baseline norms dictionary
+        norms,                          # your norms dictionary
+        your_value_semantics_function,  # your value semantics function
+        # path_length=10,               # change if needed, default is 10
+        # path_sample=500               # change if needed, default is 500
     )
-    app.run(debug=True)
+
+    args = parser.parse_args()
+    app.run(debug=True, host='0.0.0.0', port=args.port)
+    
